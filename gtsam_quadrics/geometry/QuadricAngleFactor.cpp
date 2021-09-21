@@ -1,6 +1,7 @@
 /* ----------------------------------------------------------------------------
 
- * QuadricSLAM Copyright 2020, ARC Centre of Excellence for Robotic Vision, Queensland University of Technology (QUT)
+ * QuadricSLAM Copyright 2020, ARC Centre of Excellence for Robotic Vision,
+ Queensland University of Technology (QUT)
  * Brisbane, QLD 4000
  * All Rights Reserved
  * Authors: Lachlan Nicholson, et al. (see THANKS for the full author list)
@@ -26,34 +27,39 @@ using namespace std;
 namespace gtsam {
 
 /* ************************************************************************* */
-Vector QuadricAngleFactor::evaluateError(const ConstrainedDualQuadric& quadric,
-  boost::optional<Matrix &> H) const {
+Vector QuadricAngleFactor::evaluateError(const ConstrainedDualQuadric &quadric,
+                                         boost::optional<Matrix &> H) const {
 
-
-  // evaluate error 
+  // evaluate error
   Rot3 QRot = quadric.pose().rotation();
   Vector3 error = measured_.localCoordinates(QRot);
   // Rot3::LocalCoordinates(quadric.pose().rotation());
 
-  boost::function<Vector(const ConstrainedDualQuadric&)> funPtr(boost::bind(&QuadricAngleFactor::evaluateError, this, _1, boost::none));
+  std::function<Vector(const ConstrainedDualQuadric &)> funPtr(
+      boost::bind(&QuadricAngleFactor::evaluateError, this,
+                  std::placeholders::_1, boost::none));
   if (H) {
-    Eigen::Matrix<double, 3,9> de_dr = numericalDerivative11(funPtr, quadric, 1e-6);
+    Eigen::Matrix<double, 3, 9> de_dr =
+        numericalDerivative11(funPtr, quadric, 1e-6);
     *H = de_dr;
-  } 
+  }
   return error;
 }
 
-
 /* ************************************************************************* */
-void QuadricAngleFactor::print(const std::string& s, const KeyFormatter& keyFormatter) const {
+void QuadricAngleFactor::print(const std::string &s,
+                               const KeyFormatter &keyFormatter) const {
   cout << s << "QuadricAngleFactor(" << keyFormatter(key()) << ")" << endl;
-  cout << "    NoiseModel: "; noiseModel()->print(); cout << endl;
+  cout << "    NoiseModel: ";
+  noiseModel()->print();
+  cout << endl;
 }
 
 /* ************************************************************************* */
-bool QuadricAngleFactor::equals(const QuadricAngleFactor& other, double tol) const {
-  bool equal = noiseModel()->equals(*other.noiseModel(), tol)
-    && key() == other.key();
+bool QuadricAngleFactor::equals(const QuadricAngleFactor &other,
+                                double tol) const {
+  bool equal =
+      noiseModel()->equals(*other.noiseModel(), tol) && key() == other.key();
   return equal;
 }
 

@@ -1,36 +1,35 @@
-project(gtsam_quadrics)
 cmake_minimum_required(VERSION 3.0)
-set(GTSAM_QUADRICS_VERSION 1.0.0)
 
+project(gtsam_quadrics)
+set(GTSAM_QUADRICS_VERSION 1.0.0)
 
 # we want to use some C++11 features
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra")
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 ###################################################################################
 # set up options
-option(BUILD_PYTHON_WRAP "Enable/Disable building of cython wrapper" ON)
+option(BUILD_PYTHON_WRAP "Enable/Disable building of cython wrapper" OFF)
 set(PYTHON_VERSION "3" CACHE STRING "The version of python to build the cython wrapper for (or Default)")
 
 
 
 ###################################################################################
 # find GTSAM and GTSAM CMake tools
-find_package(GTSAM REQUIRED)
-find_package(GTSAMCMakeTools REQUIRED)
-
-# set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${GTSAM_DIR}/../GTSAMCMakeTools")
+find_package(GTSAM REQUIRED HINTS "/Users/akashsha/Documents/projects/quadric-slam/.thirdparty/")
+find_package(GTSAMCMakeTools REQUIRED HINTS "/Users/akashsha/Documents/projects/quadric-slam/.thirdparty/")
 
 # include gtsam cmake tools
-include(GtsamBuildTypes) 			# Load build type flags and default to Debug mode
-include(GtsamTesting)    			# Easy functions for creating unit tests and scripts
-include(GtsamMakeConfigFile) 	# Defines a function for generating config file so package can be found with find_package function
+include(GtsamBuildTypes)                        # Load build type flags and default to Debug mode
+include(GtsamTesting)                           # Easy functions for creating unit tests and scripts
+include(GtsamMakeConfigFile)    # Defines a function for generating config file so package can be found with find_package function
 
 # NOTE: PYTHONPATH must include GTSAM_CYTHON_INSTALL_PATH for gtsam/gtsam.pxd
 if(BUILD_PYTHON_WRAP)
-	# python version must be set before including gtsamcythonwrap
-	set(GTSAM_PYTHON_VERSION ${PYTHON_VERSION})
-	include(GtsamMatlabWrap) # Automatic MATLAB wrapper generation
-	include(GtsamCythonWrap) # Automatic MATLAB wrapper generation
+  # python version must be set before including gtsamcythonwrap
+  set(GTSAM_PYTHON_VERSION ${PYTHON_VERSION})
+  include(GtsamMatlabWrap) # Automatic MATLAB wrapper generation
+  include(GtsamCythonWrap) # Automatic MATLAB wrapper generation
 endif()
 
 ###################################################################################
@@ -40,15 +39,16 @@ endif()
 include_directories(BEFORE "${PROJECT_SOURCE_DIR}")
 
 # set source files
-set(SOURCE_FILES
-	./gtsam_quadrics/base/Utilities.cpp
-	./gtsam_quadrics/geometry/ConstrainedDualQuadric.cpp
-	./gtsam_quadrics/geometry/AlignedBox2.cpp
-	./gtsam_quadrics/geometry/AlignedBox3.cpp
-	./gtsam_quadrics/geometry/BoundingBoxFactor.cpp
-	./gtsam_quadrics/geometry/QuadricAngleFactor.cpp
-	./gtsam_quadrics/geometry/QuadricCamera.cpp
-	./gtsam_quadrics/geometry/DualConic.cpp
+set(
+  SOURCE_FILES
+  ./gtsam_quadrics/base/Utilities.cpp
+  ./gtsam_quadrics/geometry/ConstrainedDualQuadric.cpp
+  ./gtsam_quadrics/geometry/AlignedBox2.cpp
+  ./gtsam_quadrics/geometry/AlignedBox3.cpp
+  ./gtsam_quadrics/geometry/BoundingBoxFactor.cpp
+  ./gtsam_quadrics/geometry/QuadricAngleFactor.cpp
+  ./gtsam_quadrics/geometry/QuadricCamera.cpp
+  ./gtsam_quadrics/geometry/DualConic.cpp
 )
 
 ###################################################################################
@@ -62,12 +62,13 @@ target_link_libraries(${CONVENIENCE_LIB_NAME} gtsam)
 ###################################################################################
 # install library and PACKAGEConfig.cmake
 install(
-	TARGETS ${CONVENIENCE_LIB_NAME} 
-	EXPORT GTSAM_QUADRICS-exports
-	LIBRARY DESTINATION lib 
-	ARCHIVE DESTINATION lib 
-	RUNTIME DESTINATION bin)
-GtsamMakeConfigFile(GTSAM_QUADRICS)
+  TARGETS ${CONVENIENCE_LIB_NAME}
+  EXPORT GTSAM_QUADRICS-exports
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+gtsammakeconfigfile(GTSAM_QUADRICS)
 # list(APPEND GTSAM_EXPORTED_TARGETS ${CONVENIENCE_LIB_NAME})
 # export(TARGETS ${GTSAM_EXPORTED_TARGETS} FILE GTSAM-exports.cmake)
 
@@ -77,19 +78,22 @@ file(GLOB gtsam_quadrics_geometry_headers "gtsam_quadrics/geometry/*.h")
 install(FILES ${gtsam_quadrics_geometry_headers} DESTINATION include/gtsam_quadrics/geometry)
 
 ###################################################################################
-# uninstall target 
+# uninstall target
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
-  IMMEDIATE @ONLY)
+  IMMEDIATE @ONLY
+)
 
-add_custom_target(uninstall
-  "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
+add_custom_target(
+  uninstall
+  "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+)
 
 ###################################################################################
 # Build tests (CMake tracks the dependecy to link with GTSAM through our project's static library)
-gtsamAddTestsGlob("geometry" "gtsam_quadrics/geometry/tests/test*.cpp" "" "${CONVENIENCE_LIB_NAME}")
-gtsamAddTestsGlob("geometry" "gtsam_quadrics/base/tests/test*.cpp" "" "${CONVENIENCE_LIB_NAME}")
+gtsamaddtestsglob("geometry" "gtsam_quadrics/geometry/tests/test*.cpp" "" "${CONVENIENCE_LIB_NAME}")
+gtsamaddtestsglob("geometry" "gtsam_quadrics/base/tests/test*.cpp" "" "${CONVENIENCE_LIB_NAME}")
 
 ###################################################################################
 # Build example files (CMake tracks the dependecy to link with GTSAM through our project's static library)
@@ -109,33 +113,34 @@ add_dependencies(examples examples_folder)
 # Build Cython wrapper (CMake tracks the dependecy to link with GTSAM through our project's static library)
 if(BUILD_PYTHON_WRAP)
 
-	# include gtsam eigency (handles numpy->eigen conversion)
-	include_directories(${GTSAM_EIGENCY_INSTALL_PATH})
+  # include gtsam eigency (handles numpy->eigen conversion)
+  include_directories(${GTSAM_EIGENCY_INSTALL_PATH})
 
-	# create __init__.py to allow build/cython/gtsam_quadrics be imported as a python package
-	file(WRITE "${PROJECT_BINARY_DIR}/cython/gtsam_quadrics/__init__.py" "from .gtsam_quadrics import *")
+  # create __init__.py to allow build/cython/gtsam_quadrics be imported as a python package
+  file(WRITE "${PROJECT_BINARY_DIR}/cython/gtsam_quadrics/__init__.py" "from .gtsam_quadrics import *")
 
-	set(GTSAM_QUADRICS_CYTHON_INSTALL_PATH "${PROJECT_BINARY_DIR}/cython/gtsam_quadrics" CACHE PATH "Cython toolbox destination, blank defaults to CMAKE_INSTALL_PREFIX/cython")
+  set(GTSAM_QUADRICS_CYTHON_INSTALL_PATH "${PROJECT_BINARY_DIR}/cython/gtsam_quadrics" CACHE PATH "Cython toolbox destination, blank defaults to CMAKE_INSTALL_PREFIX/cython")
 
-	# use gtsams cython wrapping functionality
-	wrap_and_install_library_cython("./gtsam_quadrics.h" # interface_header path
-									"from gtsam.gtsam cimport *" # extra imports for cython pxd
-									"${GTSAM_QUADRICS_CYTHON_INSTALL_PATH}" # install_path
-									"gtsam;${CONVENIENCE_LIB_NAME}" # libraries to link with
-									"wrap;gtsam;${CONVENIENCE_LIB_NAME}" # dependencies)
-	)
+  # use gtsams cython wrapping functionality
+  wrap_and_install_library_cython(
+    "./gtsam_quadrics.h" # interface_header path
+    "from gtsam.gtsam cimport *" # extra imports for cython pxd
+    "${GTSAM_QUADRICS_CYTHON_INSTALL_PATH}" # install_path
+    "gtsam;${CONVENIENCE_LIB_NAME}" # libraries to link with
+    "wrap;gtsam;${CONVENIENCE_LIB_NAME}" # dependencies)
+  )
 
-	# install __init__.py so package can be loaded
-	# install_cython_files("${PROJECT_BINARY_DIR}/cython/gtsam_quadrics/__init__.py" "${GTSAM_QUADRICS_CYTHON_INSTALL_PATH}")
+  # install __init__.py so package can be loaded
+  # install_cython_files("${PROJECT_BINARY_DIR}/cython/gtsam_quadrics/__init__.py" "${GTSAM_QUADRICS_CYTHON_INSTALL_PATH}")
 endif()
 
 ###################################################################################
-# Build Doxygen documentation 
+# Build Doxygen documentation
 
 # find doxygen
 find_package(Doxygen)
 
 # add subdirectory with custom make doc, doc_clean targets
-if (DOXYGEN_FOUND)
-	add_subdirectory(doc)
+if(DOXYGEN_FOUND)
+  add_subdirectory(doc)
 endif()

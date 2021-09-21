@@ -12,7 +12,7 @@
  * @file ConstrainedDualQuadric.cpp
  * @date Apr 14, 2020
  * @author Lachlan Nicholson
- * @brief a constrained dual quadric 
+ * @brief a constrained dual quadric
  */
 
 #include <gtsam_quadrics/geometry/AlignedBox2.h>
@@ -64,7 +64,7 @@ ConstrainedDualQuadric ConstrainedDualQuadric::constrain(const Matrix4& dual_qua
     / normalized_point_quadric.block(0,0,3,3).determinant() \
     *  1.0/lambdaa.array()  ).abs();
 
-  // extract rotation 
+  // extract rotation
   Eigen::EigenSolver<Eigen::Matrix<double,3,3>> s(normalized_point_quadric.block(0,0,3,3));
   Matrix3 rotation_matrix = s.eigenvectors().real();
 
@@ -81,7 +81,7 @@ ConstrainedDualQuadric ConstrainedDualQuadric::constrain(const Matrix4& dual_qua
 Matrix44 ConstrainedDualQuadric::matrix(OptionalJacobian<16,9> dQ_dq) const {
   Matrix44 Z = pose_.matrix();
   Matrix44 Qc = (Vector4() << (radii_).array().pow(2), -1.0).finished().asDiagonal();
-  Matrix44 Q = Z * Qc * Z.transpose(); 
+  Matrix44 Q = Z * Qc * Z.transpose();
 
   if (dQ_dq) {
 
@@ -94,7 +94,7 @@ Matrix44 ConstrainedDualQuadric::matrix(OptionalJacobian<16,9> dQ_dq) const {
     dQc_dq(0,6) = 2.0 * radii_(0);
     dQc_dq(5,7) = 2.0 * radii_(1);
     dQc_dq(10,8) = 2.0 * radii_(2);
-    
+
     using utils::kron;
     static Matrix4 I44 = Matrix::Identity(4,4);
     static Eigen::Matrix<double, 16,16> T44 = utils::TVEC(4,4);
@@ -119,8 +119,8 @@ AlignedBox3 ConstrainedDualQuadric::bounds() const {
   double x_max = (dE(0,3) - std::sqrt(dE(0,3) * dE(0,3) - (dE(0,0) * dE(3,3)))) / dE(3,3);
   double y_max = (dE(1,3) - std::sqrt(dE(1,3) * dE(1,3) - (dE(1,1) * dE(3,3)))) / dE(3,3);
   double z_max = (dE(2,3) - std::sqrt(dE(2,3) * dE(2,3) - (dE(2,2) * dE(3,3)))) / dE(3,3);
-  return AlignedBox3((Vector6() << std::min(x_min, x_max), std::max(x_min, x_max), 
-                                   std::min(y_min, y_max), std::max(y_min, y_max), 
+  return AlignedBox3((Vector6() << std::min(x_min, x_max), std::max(x_min, x_max),
+                                   std::min(y_min, y_max), std::max(y_min, y_max),
                                    std::min(z_min, z_max), std::max(z_min, z_max)).finished());
 }
 
@@ -133,7 +133,7 @@ bool ConstrainedDualQuadric::isBehind(const Pose3& cameraPose) const {
 
 /* ************************************************************************* */
 bool ConstrainedDualQuadric::contains(const Pose3& cameraPose) const {
-  Vector4 cameraPoint = (Vector4() << cameraPose.translation().vector(), 1.0).finished();
+  Vector4 cameraPoint = (Vector4() << cameraPose.translation(), 1.0).finished();
   double pointError = cameraPoint.transpose() * this->matrix().inverse() * cameraPoint;
   if (pointError <= 0.0) { return true;}
   return false;
